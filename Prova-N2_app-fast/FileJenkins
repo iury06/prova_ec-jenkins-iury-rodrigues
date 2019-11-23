@@ -1,0 +1,46 @@
+
+
+        pipeline {
+
+        	agent any
+        	environment {
+        		projectWS = "$WORKSPACE/Prova-N2_app-fast"
+        	}
+        	stages {
+
+        		stage('workspace-remota') {
+        			steps {
+        				echo 'Criando wrapper gradle'
+        				dir("$projectWS") {
+        					sh 'gradle wrapper'
+        				}
+        			}
+        		}
+        		stage('TesteUnit') {
+        			steps {
+        				echo 'Executando testes unit'
+        				dir("$projectWS") {
+        					sh '$projectWS/gradlew test'
+        				}
+        			}
+        		}
+
+        		stage('build-apk') {
+        			steps {
+        				echo 'Gerando apk'
+        				dir("$projectWS") {
+        					sh '$projectWS/gradlew assembleDebug'
+        				}
+        			}
+        		}
+        		stage('Arquive-apk') {
+        			steps {
+        				echo 'Arquivando apk gerado'
+        				archiveArtifacts artifacts: '**/app-release.apk', fingerprint: true, allowEmptyArchive: true
+        				archiveArtifacts artifacts: '**/app-release-unsigned.apk', fingerprint: true, allowEmptyArchive: false
+        				echo 'Salvando'
+
+        			}
+        		}
+        	}
+        }
